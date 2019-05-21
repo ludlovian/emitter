@@ -1,0 +1,2 @@
+# emitter
+Simple async emitter
