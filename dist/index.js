@@ -19,7 +19,7 @@ class Emitter {
     return this.off.bind(this, event, handler)
   }
   off (event, handler) {
-    let handlers = this[events].get(event);
+    const handlers = this[events].get(event);
     if (handlers) handlers.delete(handler);
   }
   once (event) {
@@ -31,7 +31,7 @@ class Emitter {
     })
   }
   emit (event, data) {
-    let handlers = this[events].get(event);
+    const handlers = this[events].get(event);
     if (!handlers) return noop
     return Promise.all([...handlers].map(h => h(data)))
   }

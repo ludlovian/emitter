@@ -22,7 +22,7 @@ export default class Emitter {
   }
 
   off (event, handler) {
-    let handlers = this[events].get(event)
+    const handlers = this[events].get(event)
     if (handlers) handlers.delete(handler)
   }
 
@@ -36,7 +36,7 @@ export default class Emitter {
   }
 
   emit (event, data) {
-    let handlers = this[events].get(event)
+    const handlers = this[events].get(event)
     if (!handlers) return noop
     return Promise.all([...handlers].map(h => h(data)))
   }

@@ -107,6 +107,4 @@ test('once', async t => {
   await p
   t.is(count, 1)
   await e.emit('foo', 'baz')
-  const e = new Emitter()
-  let count = 0
 })
