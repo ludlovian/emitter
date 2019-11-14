@@ -8,7 +8,7 @@
     "format": "prettier-standard {src,test}/*.js",
     "lint": "standard {src,test}/*.js",
     "test": "nyc ava",
-    "coverage": "npm run test && nyc report --reporter=html && sirv coverage/ -p 8000",
+    "coverage": "npm run test && nyc report --reporter=html && sirv coverage/ -H 0.0.0.0 -p 8000",
     "build": "rollup -c rollup.config.js"
   },
   "repository": {

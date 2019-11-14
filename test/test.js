@@ -3,6 +3,20 @@
 import test from 'ava'
 import Emitter from '../src'
 
+const isResolved = (p, ms = 20) =>
+  new Promise(resolve => {
+    p.then(() => resolve(true))
+    setTimeout(() => resolve(false), ms)
+  })
+
+const defer = () => {
+  const d = {}
+  d.promise = new Promise((resolve, reject) => {
+    Object.assign(d, { resolve, reject })
+  })
+  return d
+}
+
 test('construction', async t => {
   const e = new Emitter()
   t.true(e instanceof Emitter)
@@ -15,7 +29,7 @@ test('basic emit', async t => {
     count++
     t.is(data, 'bar')
   })
-  await e.emit('foo', 'bar')
+  e.emit('foo', 'bar')
   t.is(count, 1)
 })
 
@@ -27,7 +41,7 @@ test('multiple listeners', async t => {
     t.is(data, 'bar')
   })
   e.on('foo', data => count++)
-  await e.emit('foo', 'bar')
+  e.emit('foo', 'bar')
   t.is(count, 2)
 })
 
@@ -40,13 +54,13 @@ test('same listener mutiply defined', async t => {
   }
   e.on('foo', handler)
   e.on('foo', handler)
-  await e.emit('foo', 'bar')
+  e.emit('foo', 'bar')
   t.is(count, 1)
 })
 
 test('event with no listener', async t => {
   const e = new Emitter()
-  await e.emit('foo', 'bar')
+  e.emit('foo', 'bar')
   t.pass()
 })
 
@@ -60,7 +74,7 @@ test('multiple events', async t => {
   e.on('quux', data => {
     count += 100
   })
-  await e.emit('foo', 'bar')
+  e.emit('foo', 'bar')
   t.is(count, 1)
 })
 
@@ -68,10 +82,10 @@ test('off via returned function', async t => {
   const e = new Emitter()
   let count = 0
   const off = e.on('foo', () => count++)
-  await e.emit('foo')
+  e.emit('foo')
   t.is(count, 1)
   off()
-  await e.emit('foo')
+  e.emit('foo')
   t.is(count, 1)
 })
 
@@ -80,10 +94,10 @@ test('off via method', async t => {
   let count = 0
   const handler = () => count++
   e.on('foo', handler)
-  await e.emit('foo')
+  e.emit('foo')
   t.is(count, 1)
   e.off('foo', handler)
-  await e.emit('foo')
+  e.emit('foo')
   t.is(count, 1)
 })
 
@@ -91,7 +105,7 @@ test('off when not on', async t => {
   const e = new Emitter()
   let count = 0
   e.off('foo', () => count++)
-  await e.emit('foo')
+  e.emit('foo')
   t.is(count, 0)
 })
 
@@ -106,5 +120,18 @@ test('once', async t => {
   e.emit('foo', 'bar')
   await p
   t.is(count, 1)
-  await e.emit('foo', 'baz')
+  await e.emitAsync('foo', 'baz')
+})
+
+test('async emit', async t => {
+  const e = new Emitter()
+  const d = defer()
+  e.on('foo', data => d.promise.then(() => t.is(data, 'bar')))
+  const p = e.emitAsync('foo', 'bar')
+  t.false(await isResolved(p))
+
+  d.resolve()
+  t.true(await isResolved(p))
+
+  await e.emitAsync('bar', 'baz')
 })

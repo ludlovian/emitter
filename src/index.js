@@ -37,6 +37,12 @@ export default class Emitter {
 
   emit (event, data) {
     const handlers = this[events].get(event)
+    if (!handlers) return
+    ;[...handlers].map(h => h(data))
+  }
+
+  emitAsync (event, data) {
+    const handlers = this[events].get(event)
     if (!handlers) return noop
     return Promise.all([...handlers].map(h => h(data)))
   }
