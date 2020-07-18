@@ -1,21 +1,10 @@
 'use strict'
 
 import test from 'ava'
+import promiseGoodies from 'promise-goodies'
 import Emitter from '../src'
 
-const isResolved = (p, ms = 20) =>
-  new Promise(resolve => {
-    p.then(() => resolve(true))
-    setTimeout(() => resolve(false), ms)
-  })
-
-const defer = () => {
-  const d = {}
-  d.promise = new Promise((resolve, reject) => {
-    Object.assign(d, { resolve, reject })
-  })
-  return d
-}
+promiseGoodies()
 
 test('construction', async t => {
   const e = new Emitter()
@@ -125,13 +114,13 @@ test('once', async t => {
 
 test('async emit', async t => {
   const e = new Emitter()
-  const d = defer()
-  e.on('foo', data => d.promise.then(() => t.is(data, 'bar')))
+  const d = Promise.deferred()
+  e.on('foo', data => d.then(() => t.is(data, 'bar')))
   const p = e.emitAsync('foo', 'bar')
-  t.false(await isResolved(p))
+  t.false(await p.isResolved())
 
   d.resolve()
-  t.true(await isResolved(p))
+  t.true(await p.isResolved())
 
   await e.emitAsync('bar', 'baz')
 })
